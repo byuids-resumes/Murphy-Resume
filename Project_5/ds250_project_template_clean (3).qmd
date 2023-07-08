@@ -1,0 +1,202 @@
+---
+title: "Client Report - The Best and Worst of Star Wars"
+subtitle: "Course DS 250"
+author: "Satchel Murphy"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import altair as alt
+import numpy as np
+
+from IPython.display import Markdown
+from IPython.display import display
+from tabulate import tabulate
+```
+
+
+## Elevator pitch
+
+_paste your elevator pitch here_
+_A SHORT (4-5 SENTENCES) PARAGRAPH THAT `DESCRIBES KEY INSIGHTS` TAKEN FROM METRICS IN THE PROJECT RESULTS THINK TOP OR MOST IMPORTANT RESULTS._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+dat = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+```
+
+__Highlight the Questions and Tasks__
+
+## QUESTION|TASK 1
+
+__COPY PASTE QUESTION|TASK 1 FROM THE PROJECT HERE__
+
+_type your results and analysis here_
+
+```{python}
+#| label: Q1
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+#| label: Q1 chart
+#| code-summary: plot example
+#| fig-cap: "My useless chart"
+#| fig-align: center
+# Include and execute your code here
+alt.Chart(dat.head(200))\
+    .encode(x="name", y="AK")\
+    .mark_bar()\
+    .properties(
+        width=800,
+        height=300
+    )
+```
+
+
+```{python}
+#| label: Q1 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+mydat = dat.head(1000)\
+    .groupby('year')\
+    .sum()\
+    .reset_index()\
+    .tail(10)\
+    .filter(["year", "AK","AR"])
+
+display(mydat)
+
+```
+
+
+## QUESTION|TASK 2
+
+__COPY PASTE QUESTION|TASK 2 FROM THE PROJECT HERE__
+
+_type your results and analysis here_
+
+```{python}
+#| label: Q2
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+#| label: Q2 chart
+#| code-summary: plot example
+#| fig-cap: "My useless chart"
+#| fig-align: center
+# Include and execute your code here
+alt.Chart(dat.head(200))\
+    .encode(x = "name", y = "AK")\
+    .mark_bar()
+```
+
+
+```{python}
+#| label: Q2 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+mydat = dat.head(1000)\
+    .groupby('year')\
+    .sum()\
+    .reset_index()\
+    .tail(10)\
+    .filter(["year", "AK","AR"])
+
+display(mydat)
+
+```
+
+
+## QUESTION|TASK 3
+
+__COPY PASTE QUESTION|TASK 3 FROM THE PROJECT HERE__
+
+_type your results and analysis here_
+
+```{python}
+#| label: Q3
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+#| label: Q3 chart
+#| code-summary: plot example
+#| fig-cap: "My useless chart"
+#| fig-align: center
+# Include and execute your code here
+alt.Chart(dat.head(200))\
+    .encode(x = "name", y = "AK")\
+    .mark_bar()
+```
+
+
+```{python}
+#| label: Q3 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+mydat = dat.head(1000)\
+    .groupby('year')\
+    .sum()\
+    .reset_index()\
+    .tail(10)\
+    .filter(["year", "AK","AR"])
+
+display(mydat)
+
+```
+
+
+
+## APPENDIX A (All Python Code)
+
+```python
+#paste other your code from your python file (.py) here
+#the code snippets above should be just enough code to display the chart or table needed for the question or task
+#the appendix should have all the code, and it should be well `commented`
+```

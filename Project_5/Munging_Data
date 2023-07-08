@@ -1,0 +1,15 @@
+import pandas as pd
+import altair as alt
+
+url = 'munging.csv'
+movie_data = pd.read_csv(url)
+
+print(movie_data.head(5).to_markdown(index=False))
+
+range_columns = movie_data.box_office_rev.str.split("- €", expand=True)
+
+movie_data["high_range_rev"] = range_columns[1].astype(int)
+
+movie_data.drop("box_office_rev", axis=1, inplace=True)
+
+print(movie_data.head(5).to_markdown(index=False))

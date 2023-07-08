@@ -1,0 +1,186 @@
+---
+title: "Client Report - Baseball Relationships"
+subtitle: "Course DS 250"
+author: "Satchel Murphy"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import altair as alt
+import numpy as np
+import sqlite3
+
+from IPython.display import Markdown
+from IPython.display import display
+from tabulate import tabulate
+```
+
+
+## Elevator pitch
+
+_Here we have a bunch of SQLite queries that help describe specifics in baseball relationships. This is a nice way to locate specific datasets to work with. Large datasets can be made into more manageable ones when we are able to use queries._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+sqlite_file='lahmansbaseballdb.sqlite'
+con=sqlite3.connect(sqlite_file)
+```
+
+
+
+## GRAND QUESTION 1
+
+__Write an SQL query to create a new dataframe about baseball players who attended BYU-Idaho. The new table should contain five columns: playerID, schoolID, salary, and the yearID/teamID associated with each salary. Order the table by salary (highest to lowest) and print out the table in your report.__
+
+_What we see here is a group of players who played college baseball at Brigham Young University-Idaho. Using similar queries, we may be able to find out where the most advantageous college to go is in order to earn a large salary in the pros. By grouping all this together, we can also see about how long each of these players careers will last._
+
+```{python}
+#| label: GQ1
+#| code-summary: Read and format data
+# Include and execute your code here
+byui=pd.read_sql_query(
+    'SELECT DISTINCT(c.playerid), c.schoolid, s.salary, s.yearid, s.teamid FROM collegeplaying c JOIN salaries s ON c.playerid = s.playerid WHERE schoolid = "idbyuid" ORDER BY salary DESC;',
+    con
+)
+byui
+
+```
+
+
+
+
+## GRAND QUESTION 2
+
+__Write an SQL query that provides playerID, yearID, and batting average for players with at least 1 at bat that year. Sort the table from highest batting average to lowest, and then by playerid alphabetically. Show the top 5 results in your report.__
+
+_In each of these tables, we can see that the batting average decreases as the players are batting more. This makes a lot of sense due to the fact that an error is more likely to occur over the course of time. Some players may have stepped into the batter's box one time and got a hit then never stepped on the field again. Whereas we can gain a sense of consistency from the players who had at least 100 at bats._
+
+```{python}
+#| label: GQ2 table 1
+#| tbl-cap: "Highest Batting Average with any amount of At-Bats"
+#| tbl-cap-location: top
+# Include and execute your code here
+query1 = """
+SELECT playerid, yearid, (batting.h/batting.ab) AS Batting_Average
+FROM batting
+WHERE ab >= 1
+ORDER BY Batting_Average DESC , playerid ASC
+LIMIT 5;
+"""
+top_BA_any = pd.read_sql_query(query1, con)
+
+top_BA_any
+
+```
+
+__Use the same query as above, but only include players with at least 10 at bats that year. Print the top 5 results.__
+
+```{python}
+#| label: GQ2 table 2
+#| tbl-cap: "Highest Batting Average with a Minimum 10 At-Bats"
+#| tbl-cap-location: top
+# Include and execute your code here
+query2 = """
+SELECT playerid, yearid, (CAST(batting.h AS REAL)/batting.ab) AS Batting_Average
+FROM batting
+WHERE ab >= 10
+ORDER BY Batting_Average DESC , playerid ASC
+LIMIT 5;
+"""
+top_BA_10=pd.read_sql_query(query2, con)
+
+top_BA_10
+
+```
+
+__Now calculate the batting average for players over their entire careers (all years combined). Only include players with at least 100 at bats, and print the top 5 results.__
+
+```{python}
+#| label: GQ2 table 3
+#| tbl-cap: "Highest Batting Average with a Minimum 100 At-Bats"
+#| tbl-cap-location: top
+# Include and execute your code here
+query3 = """
+SELECT DISTINCT(batting.playerid), COUNT(playerid) AS Career_Length, (CAST(batting.h AS REAL)/batting.ab) AS Batting_Average
+FROM batting
+WHERE batting.ab >= 100
+GROUP BY playerid
+ORDER BY Batting_Average DESC, batting.playerid ASC
+LIMIT 5;
+"""
+
+top_BA_Career = pd.read_sql_query(query3, con)
+
+top_BA_Career
+
+```
+
+
+## GRAND QUESTION 3
+
+__Pick any two baseball teams and compare them using a metric of your choice (average salary, home runs, number of wins, etc). Write an SQL query to get the data you need, then make a graph in Altair to visualize the comparison. What do you learn?__
+
+_There is an obvious correlation here between the teams that has more wins has more attendance. There is a case to be made that even though it looks like one team is good and the other is not as good in 2019 and 2018, we can see in the years 2016 and 2015 that both teams have middle of the road records. One argument that can be had is that the consistent stream of fans attending each year can help drive the owners of the team to push their players to be more successful in the season. Retention of fans can help with ticket sales and a winning team is more exciting to watch than a losing team._
+
+
+```{python}
+#| label: GQ3 table
+#| code-summary: Dodgers vs. Orioles (Attendance does matter)
+#| fig-cap: "Dodgers vs. Orioles over ten years"
+#| fig-align: center
+# Include and execute your code here
+query4 = """
+SELECT teams.teamid, yearid, name , w ,l, attendance
+FROM teams
+WHERE teamid = 'LAN' OR teamid = 'BAL'
+ORDER BY yearid DESC, teamid ASC
+LIMIT 20;
+"""
+
+fans_help = pd.read_sql_query(query4, con)
+
+fans_help
+```
+
+_Feel free to interact with the chart. You may drag the grid around, hover over any of the points for more detailed information and zoom in or out._
+
+```{python}
+#| label: GQ3 Chart
+#| tbl-cap: "Attendance and Wins"
+#| tbl-cap-location: top
+# Include and execute your code here
+chart_name = "Does Fan Attendance Help Impact the Team's Record"
+fans_chart_edited=(alt.Chart(fans_help,title = chart_name).encode(x='W',y='attendance',color='teamID', tooltip=['teamID','W','attendance']).mark_circle()).interactive()
+fans_chart_edited
+```
+
+
+
+## APPENDIX A (Additional Python Code)
+
+```python
+#paste other your code from your python file (.py) here
+```
