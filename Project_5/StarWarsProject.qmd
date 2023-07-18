@@ -1,14 +1,70 @@
+---
+title: "Client Report - The Opinions of Star Wars"
+subtitle: "Course DS 250"
+author: "Satchel Murphy"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
 import pandas as pd
 import altair as alt
 import numpy as np
+
+from IPython.display import Markdown
+from IPython.display import display
+from tabulate import tabulate
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
+```
 
-# Load the data
+
+## Elevator pitch
+
+_It is important to see that data can be altered and manipulated in a way to be easier understood. Grouping together data into categories can help when it comes to displaying the data. Star Wars being such a popular franchise most likely has a lot of data from surveys about it. In this report, we can explore what we can do with results of a survey and how to make graphs from it._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
 data = pd.read_csv('https://raw.githubusercontent.com/fivethirtyeight/data/master/star-wars-survey/StarWars.csv',encoding_errors='ignore',header=None,skiprows=2)
+
+```
+
+__Highlight the Questions and Tasks__
+
+## TASK 1
+
+__Shorten the column names and clean them up for easier use with pandas. Provide a table or list that exemplifies how you fixed the names.__
+
+_I was able to shorten the column names and clean them up so they would be easier to read. Now some of the headers to the data will all be less than about 30 characters._
+
+```{python}
+#| label: Q1
+#| code-summary: Read and format data
+# Include and execute your code here
 # Shorten and clean up column names
 data.columns=[
     'respondent_id',
@@ -91,15 +147,39 @@ data = data.rename(columns={
     38:'education',
     39:'location'
 })
-data
-# Create a separate dataframe for visualization recreation
-data_copy = data.copy()
 
-# Clean and format the data
-# Filter respondents that have seen at least one film
+```
+
+
+```{python}
+#| label: Q1 table
+#| code-summary: table example
+#| tbl-cap: "Shorter Names"
+#| tbl-cap-location: top
+# Include and execute your code here
+mydat = data.head(10)\
+    .reset_index()\
+    .tail(10)\
+    
+
+display(mydat)
+
+```
+
+
+## TASK 2
+
+__Clean and format the data so that it can be used in a machine learning model. As you format the data, you should complete each item listed below. In your final report provide example(s) of the reformatted data with a short description of the changes made.__
+
+_Here I was able to convert the age ranges to a single number and then convert it to a different type of column displaying those numbers. I was able to do the same for the eduacation level and income ranges. The target was then established on the income range number 3, being the number with $50,000 as the minimum of that range. We want to see information based on that number._
+
+```{python}
+#| label: Q2
+#| code-summary: Read and format data
+# Include and execute your code here
+
 data = data[data['seen_any'] == 'Yes']
-data
-# Create a new column for age ranges as a single number
+
 age_mapping = {
     '18-29': 1,
     '30-44': 2,
@@ -108,10 +188,6 @@ age_mapping = {
 }
 data['age'] = data['age'].map(age_mapping)
 
-# Drop the age range categorical column
-#data['age'] = data['age'].str.replace('\d*[->]','',regex=True)
-
-# Create a new column for education groupings as a single number
 education_mapping = {
     'Less than high school degree': 1,
     'High school degree': 2,
@@ -121,8 +197,6 @@ education_mapping = {
 }
 data['education'] = data['education'].map(education_mapping)
 
-
-# Create a new column for income ranges as a single number
 income_mapping = {
     '$0 - $24,999': 1,
     '$25,000 - $49,999': 2,
@@ -132,19 +206,42 @@ income_mapping = {
 }
 data['income'] = data['income'].map(income_mapping)
 
-data
-# Create the target column based on the new income range column
 data['target'] = (data['income'] > 3).astype(int)
 
- #One-hot encode all remaining categorical columns
-#categorical_columns = [
-#                       'han_solo', 'luke_skywalker', 'princess_leia', 'anakin_skywalker', 'obi_wan',
-#                       'emperor_palpatine', 'darth_vader', 'lando_calrissian', 'boba_fett', 'c3po',
-#                       'r2d2', 'jar_jar_binks', 'padme_amidala', 'yoda', 'shot_first', 'expanded_universe',
-#                       'fan_expanded_universe', 'fan_star_trek', 'gender', 'location']
-#data = pd.get_dummies(data, columns=categorical_columns)
-#data
 
+```
+
+
+
+
+
+```{python}
+#| label: Q2 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+mydat = data.head(10)\
+    .reset_index()\
+    .tail(10)\
+
+display(mydat)
+
+```
+
+
+## TASK 3
+
+__Validate that the data provided on GitHub lines up with the article by recreating 2 of the visuals from the article.__
+
+_I feel like I did a fairly good job at recreating the tables that were found on the original document. The rankings table is straightforward, but I decided to add some color to the other chart about who shot first._
+
+```{python}
+#| label: Q3 Chart 1
+#| code-summary: plot example
+#| fig-cap: "Which Star Wars Movie was Best?"
+#| fig-align: center
+# Include and execute your code here
 
 seen_all = data[
     (data['Seen_1'] == 'Star Wars: Episode I  The Phantom Menace') &
@@ -185,8 +282,17 @@ chart_with_labels = (chart + text)
 
 chart_with_labels
 
+```
 
-# Filter the data for respondents who answered about who shot first
+
+
+```{python}
+#| label: Q3 Chart 2
+#| code-summary: plot example
+#| fig-cap: "Who Shot First?"
+#| fig-align: center
+# Include and execute your code here
+
 shoot_first_data = data[data['shot_first'].isin(['Han', 'Greedo', "I don't understand this question"])]
 
 # Calculate the counts for each option
@@ -218,10 +324,20 @@ chart2_labels = (chart2 + text2)
 
 chart2_labels
 
-# Build a machine learning model to predict income > $50k
+```
 
 
-# Prepare the data
+
+
+## TASK 4
+
+__Build a machine learning model that predicts whether a person makes more than $50k. Describe your model and report the accuracy.__
+
+_Using the target that I had previously established as well as the income ranges. The model that I ended up making shows that there is a high chance that the respondent makes more than $50,000. The accuracy score that I received was around 82%._
+
+```{python}
+
+
 X = data.drop(['respondent_id', 'income', 'target'], axis=1)
 y = data['target']
 
@@ -244,3 +360,15 @@ accuracy = accuracy_score(y_test, y_pred)
 
 # Report the accuracy
 print("Accuracy:", accuracy)
+
+
+
+```
+
+## APPENDIX A (All Python Code)
+
+```python
+#paste other your code from your python file (.py) here
+#the code snippets above should be just enough code to display the chart or table needed for the question or task
+#the appendix should have all the code, and it should be well `commented`
+```

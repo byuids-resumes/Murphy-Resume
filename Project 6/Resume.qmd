@@ -1,0 +1,57 @@
+---
+layout: resume
+title: Satchel Murphy's Resume
+format:
+    html:
+        self-contained: true
+        page-layout: full
+        title-block-banner: true
+---
+# Satchel Murphy
+Enthusiastic team member as well as diligent worker. Some of my better qualities are that I am friendly, productive, and analytical. Communication skills, both written and verbal, are very developed from recent jobs.  Bilingual, hardworking, and ready to join my next team.
+
+<div id="webaddress">
+<a href="satch.murph15@gmail.com">satch.murph15@gmail.com</a>
+| <a href="https://www.linkedin.com/in/satchel-murphy-5b24061b1/">LinkedIn Profile</a>
+</div>
+
+<!-- https://www.monique.tech/the-art-of-markdown -->
+
+
+## Education
+
+`2011-2015`
+__Simi Valley High School__, Simi Valley, CA
+
+
+`Expected 2023`
+__Brigham Young University - Idaho__, Rexburg, ID
+
+
+
+## Related Experience
+
+### Work Experience
+
+`January 2022 - June 2023`
+__Frozen Dessert Supplies__, Rexburg, ID
+
+- Coordinated with logistics and supply chain teams to ensure on-time and cost-effective delivery of goods and services. Helped manage several excel projects while maintaining warehouse order fulfillment.
+
+
+## Service and Other Work History
+
+`2021-2022`
+__Warehouse Lead__, Frozen Dessert Supplies
+
+`2020-2021`
+__Line Cook Lead__, Little Caesars
+
+`2016-2018`
+__Church Missionary__, Rosario, Argentina
+
+
+
+<!-- ### Footer
+
+Last updated: July 2023-->
