@@ -38,40 +38,56 @@ from tabulate import tabulate
 
 ## Elevator pitch
 
-_paste your elevator pitch here_
+_Here we are going to look at the difference of several different airports and the ways that we can use some data manipulation to make the reports show us what we need to know. The numbers can be easily changed to make it obvious what we want to display, such as minutes or hours. We can also group categories into new subcategories. These can hold significance when we are trying to understand certain issues, such as the severity of the weather during delays._
 
 ```{python}
 #| label: project data
 #| code-summary: Read and format project data
 # Include and execute your code here
 url="https://raw.githubusercontent.com/byuidatascience/data4missing/master/data-raw/flights_missing/flights_missing.json"
-flight_data=pd.read_json(url)
+data=pd.read_json(url)
 ```
 
-__Highlight the grand questions__
+
 
 ## GRAND QUESTION 1
 
 __Which airport has the worst delays?__
 
-_type your results and analysis here_
+_When it comes to the worst delays, I decided to use the simple factor of time. The airports that seem to have the worst delays are the O'Hare and San Francisco airport. O'Hare has an average that is higher than the third quartile of all the other airports. That does not bode well, considering it would be about an hour of a delay._
 
 ```{python}
 #| label: Worst Delays
 #| code-summary: Read and format data
 # Include and execute your code here
-flight_data = flight_data.assign(average_delay_time = flight_data.minutes_delayed_total/flight_data.num_of_delays_total)
+# Group data by airport
+airport_summary = data.groupby("airport_name").agg({
+    "num_of_flights_total": "sum",
+    "num_of_delays_total": "sum",
+    "minutes_delayed_total": "mean"
+})
+
+airport_summary["Proportion of num_of_delays_total"] = airport_summary["num_of_delays_total"] / airport_summary["num_of_flights_total"]
 
 
 ```
 
-_include figures in chunks and discuss your findings in the figure._
+
 
 ```{python}
-#| label: Airport Delays
-#| fig-cap: '"We were supposed to be leaving an hour ago!"'
-#| fig-align: center
+#| label: GQ1 table
+#| code-summary: table example
+#| tbl-cap-location: top
 # Include and execute your code here
+#print(tabulate(airport_summary, headers='keys', tablefmt='psql'))
+
+airport_summary.head(5)
+
+```
+
+```{python}
+
+flight_data = data.assign(average_delay_time = data.minutes_delayed_total/data.num_of_delays_total)
 title="Among Other Airlines, ORD Has The Highest Overall Delay Times"
 flight_chart = alt.Chart(flight_data, title=title, width=500).mark_boxplot().encode(
     x=alt.X("average_delay_time", title = "Minutes"),
@@ -93,119 +109,155 @@ flight_chart
 
 ```
 
-
-```{python}
-#| label: GQ1 table
-#| code-summary: table example
-#| tbl-cap: "Not much of a table"
-#| tbl-cap-location: top
-# Include and execute your code here
-flight_data = flight_data.head(1000)\
-    .groupby(['airport_name', 'minutes_delayed_total','year'])\
-    .mean()\
-    .tail(15)\
-    .filter(["airport_name"])
-
-display(flight_data)
-
-```
-
-
 ## GRAND QUESTION 2
 
 __What is the best month to fly if you want to avoid delays of any length?__
 
-_type your results and analysis here_
+_The best month to fly when trying to avoid delays of any kind would be September. The second best month to fly would be November. The month that has the most delays of any length is December, most likely due to the weather getting worse at that time._
 
 ```{python}
 #| label: GQ2
 #| code-summary: Read and format data
 # Include and execute your code here
+data_cleaned = data.dropna(subset=["month"])
 
+# Group data by month
+month_summary = data_cleaned.groupby("month").agg({
+    "num_of_flights_total": "sum",
+    "num_of_delays_total": "sum",
+})
+
+# Calculate proportion of num_of_delays_total
+month_summary["Proportion of Delays"] = month_summary["num_of_delays_total"] / month_summary["num_of_flights_total"]
+
+# Reset the index to use the month as a column
+month_summary.reset_index(inplace=True)
+
+# Sort months in chronological order
+month_order = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+month_summary["month"] = pd.Categorical(month_summary["month"], categories=month_order, ordered=True)
+month_summary = month_summary.sort_values("month")
 
 ```
 
-_include figures in chunks and discuss your findings in the figure._
 
 ```{python}
 #| label: GQ2 chart
 #| code-summary: plot example
-#| fig-cap: "My useless chart"
+#| fig-cap: "My wonderful chart"
 #| fig-align: center
 
 
-title_q2 = "The Overall Worst Month to Fly is Either August or October"
+bar_plot_month = alt.Chart(month_summary).mark_bar().encode(
+    x=alt.X("month:N", title="month", sort=month_order),
+    y=alt.Y("Proportion of Delays:Q", title="Proportion of num_of_delays_total"),
+    tooltip=["month", "Proportion of Delays"]
+).properties(
+    width=600,
+    height=400,
+    title="Proportion of Delays by month"
+)
 
-flight_chart_month_delays = alt.Chart(flight_data.dropna(subset= 'month'), title=title_q2, width=500).mark_bar().encode(x=alt.X("month", title = "Months"),y=alt.Y("num_of_delays_total", title= "Total Delays"))
-
-flight_chart_month_delays
-```
-
-
-```{python}
-#| label: GQ2 table
-#| code-summary: table example
-#| tbl-cap: "Not much of a table"
-#| tbl-cap-location: top
-# Include and execute your code here
-#mydat = dat.head(1000)\
-#    .groupby('year')\
-#    .sum()\
-#    .reset_index()\
-#    .tail(10)\
-#    .filter(["year", "AK","AR"])
-
-#display(mydat)
+# Display the bar plot
+bar_plot_month
 
 ```
+
 
 
 ## GRAND QUESTION 3
 
 __Is there a significant impact with "Mild" weather delays?__
 
-_type your results and analysis here_
+_By simply adding the Mild weather category, it does make it seem like there are more flights that are accounted for. The NAS column was just a mystery and did not hold any responsability for the flights that were delayed. When they are assigned to a specific category, we can then make some assumptions of what happened to these flights more accurately than just not having the correct informatiomn._
 
 ```{python}
 #| label: GQ3
 #| code-summary: Read and format data
 # Include and execute your code here
 
+# Create a new column for mild weather delayed flights
+data["Mild Weather"] = 0
+
+data["Severe Weather"] = data["num_of_delays_weather"]
+
+data["Mild Weather"] = 0.3 * data["num_of_delays_late_aircraft"]
+
+is_april_to_august = (data["month"].isin(["April", "May", "June", "July", "August"]))
+data.loc[is_april_to_august & (data["Mild Weather"] == 0), "Mild Weather"] = 0.4 * data.loc[is_april_to_august & (data["Mild Weather"] == 0), "num_of_delays_nas"]
+data.loc[~is_april_to_august & (data["Mild Weather"] == 0), "Mild Weather"] = 0.65 * data.loc[~is_april_to_august & (data["Mild Weather"] == 0), "num_of_delays_nas"]
+
+data["Mild Weather"] = data["Mild Weather"].astype(int)
+
+airport_weather_summary = data.groupby("airport_code").agg({
+    "num_of_flights_total": "sum",
+    "Mild Weather": "sum",
+    "Severe Weather": "sum"
+})
+
+# Calculate the proportion of flights delayed by mild and severe weather for each airport
+airport_weather_summary["Mild Weather Delayed Flights"] = airport_weather_summary["Mild Weather"] / airport_weather_summary["num_of_flights_total"]
+airport_weather_summary["Severe Weather Delayed Flights"] = airport_weather_summary["Severe Weather"] / airport_weather_summary["num_of_flights_total"]
+
 
 ```
 
-_include figures in chunks and discuss your findings in the figure._
 
-```{python}
-#| label: GQ3 chart
-#| code-summary: plot example
-#| fig-cap: "My useless chart"
-#| fig-align: center
-# Include and execute your code here
-#alt.Chart(dat.head(200))\
-#    .encode(x = "name", y = "AK")\
-#    .mark_bar()
-```
 
 
 ```{python}
 #| label: GQ3 table
 #| code-summary: table example
-#| tbl-cap: "Not much of a table"
+#| tbl-cap: "New table"
 #| tbl-cap-location: top
-# Include and execute your code here
-#mydat = dat.head(1000)\
-#    .groupby('year')\
-#    .sum()\
-#    .reset_index()\
-#    .tail(10)\
-#    .filter(["year", "AK","AR"])
 
-#display(mydat)
+data.head(5)
+```
+
+## GRAND QUESTION 4
+
+```{python}
+#| label: GQ4 chart
+#| code-summary: plot example
+#| fig-cap: "Mild vs. Severe"
+#| fig-align: center
+# Include and execute your code here
+
+airport_weather_summary.reset_index(inplace=True)
+airport_weather_summary = pd.melt(airport_weather_summary, id_vars=["airport_code"], value_vars=["Mild Weather Delayed Flights", "Severe Weather Delayed Flights"], var_name="Weather Category", value_name="Proportion of Delayed Flights")
+
+
+bar_plot_weather = alt.Chart(airport_weather_summary).mark_bar().encode(
+    x=alt.X("airport_code:N", title="Airport"),
+    y=alt.Y("Proportion of Delayed Flights:Q", title="Proportion of Delayed Flights"),
+    color=alt.Color("Weather Category:N", scale=alt.Scale(domain=["Mild Weather Delayed Flights", "Severe Weather Delayed Flights"], range=["#1f77b4", "#ff7f0e"])),
+    tooltip=["airport_code", "Proportion of Delayed Flights"]
+).properties(
+    width=700,
+    height=500,
+    title="Proportion of Flights Delayed by Mild and Severe Weather at Each Airport"
+)
+
+# Display the bar plot
+bar_plot_weather
+
+
 
 ```
 
+_Among all the flights that are delayed, the one airport that has the largest volume of delays due weather is San Fracisco. The proportions that are evenly distributed among the two types of weather delays came from Atlanta. This is interesting because it also seemed to have the highest amount of the severe weather delays but the least amount of delays from weather proportionately._
 
+## GRAND QUESTION 5
+
+```{python}
+
+data.replace("", np.nan, inplace=True)
+
+data.iloc[2]
+
+```
+
+_Here is one row that has an example of the null values replaced with NaN._
 
 ## APPENDIX A (Additional Python Code)
 
